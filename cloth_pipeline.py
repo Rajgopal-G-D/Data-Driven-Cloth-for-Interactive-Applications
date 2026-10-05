@@ -97,7 +97,7 @@ def mse(model, X, Y):
 def train(model, train_set, val_set, epochs, lr=1e-4, bs=32):
     Xtr, Ytr = train_set
     opt = torch.optim.Adam([p for p in model.parameters() if p.requires_grad], lr=lr)
-    best, best_state = float("inf"), None
+    best, best_state, hist = float("inf"), None, []
     for ep in range(epochs):
         model.train()
         perm = torch.randperm(len(Xtr), device=DEV)
@@ -106,14 +106,15 @@ def train(model, train_set, val_set, epochs, lr=1e-4, bs=32):
             loss = ((model(Xtr[idx]) - Ytr[idx]) ** 2).mean()
             opt.zero_grad(); loss.backward(); opt.step()
         model.eval()
-        v = mse(model, *val_set)
+        tr, v = mse(model, Xtr, Ytr), mse(model, *val_set)
+        hist.append((ep + 1, tr, v))
         if v < best:
             best = v
             best_state = {k_: t.clone() for k_, t in model.state_dict().items()}
         if (ep + 1) % max(1, epochs // 10) == 0:
-            print(f"    epoch {ep+1:4d}  train {mse(model, Xtr, Ytr):.3e}  val {v:.3e}")
+            print(f"    epoch {ep+1:4d}  train {tr:.3e}  val {v:.3e}")
     model.load_state_dict(best_state)
-    return model
+    return model, hist
 
 
 def time_inference(model, d_in, runs=200):
@@ -134,7 +135,7 @@ def time_inference(model, d_in, runs=200):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--epochs", type=int, default=200)   # paper uses 1000
-    ap.add_argument("--verts", type=int, default=400)    # paper uses 2170
+    ap.add_argument("--verts", type=int, default=2170)   # matches paper
     ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument("--out", default="results.json")
     a = ap.parse_args()
@@ -162,7 +163,7 @@ def main():
     for name, hidden, k in configs:
         print(f"\n[{name}]")
         model = build_model(d_in, d_out, hidden, (mu, Vt) if k else None, k)
-        model = train(model, train_set, val_set, a.epochs, a.lr)
+        model, _ = train(model, train_set, val_set, a.epochs, a.lr)
         r = dict(model=name, train=mse(model, *train_set), test=mse(model, *test_set),
                  ms_per_mesh=time_inference(model, d_in) * 1e3)
         results.append(r)
