@@ -9,7 +9,7 @@ from cloth_pipeline import make_dataset, clean
 os.makedirs("data", exist_ok=True)
 os.makedirs("figures", exist_ok=True)
 
-X, Y = make_dataset(n=10000, joints=14, verts=400)
+X, Y = make_dataset(n=10000, joints=14, verts=2170)
 print(f"Raw dataset: X {X.shape}, Y {Y.shape}")
 
 # Mean squared L2 distance of offsets per example (as in the paper)
