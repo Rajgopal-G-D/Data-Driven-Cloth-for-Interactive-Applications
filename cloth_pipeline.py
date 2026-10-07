@@ -78,10 +78,11 @@ def build_model(d_in, d_out, hidden, pca=None, k=None):
     if pca is None:
         layers.append(nn.Linear(prev, d_out))          # direct offsets
     else:
-        mu, Vt = pca
+        mu, Vt = pca[0], pca[1]
+        scale = pca[2][:k] if len(pca) > 2 else torch.ones(k, device=Vt.device)
         layers.append(nn.Linear(prev, k))               # PCA coefficients c_l
         pc = nn.Linear(k, d_out)                        # fixed "PC layer": sum c_l u_l + mu
-        pc.weight.data = Vt[:k].T.contiguous().clone()
+        pc.weight.data = (Vt[:k] * scale[:, None]).T.contiguous().clone()
         pc.bias.data = mu.clone()
         for p in pc.parameters():
             p.requires_grad = False
