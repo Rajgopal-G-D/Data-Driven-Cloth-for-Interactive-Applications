@@ -7,3 +7,4 @@ venv/
 .ipynb_checkpoints/
 data/
 checkpoints/
+figures/best_worst_indices.npy
