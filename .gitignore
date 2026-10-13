@@ -9,3 +9,6 @@ data/
 checkpoints/
 figures/best_worst_indices.npy
 Mini_Project_Presentation.pptx
+experiments/
+setup_project.py
+test.py
