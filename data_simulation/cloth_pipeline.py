@@ -24,8 +24,8 @@ DEV = "cuda" if torch.cuda.is_available() else "cpu"
 
 # ---------------------------------------------------------------- 1. data
 def random_quats(n, joints, rng):
-    q = rng.normal(size=(n, joints, 4))
-    q /= np.linalg.norm(q, axis=-1, keepdims=True)
+    q = rng.normal(size=(n, joints, 4)) #random vlaues for joints 
+    q /= np.linalg.norm(q, axis=-1, keepdims=True) #normalizing the values 
     q *= np.sign(q[..., :1] + 1e-9)  # keep w >= 0 (q and -q are the same rotation)
     return q.reshape(n, joints * 4).astype(np.float32)
 
